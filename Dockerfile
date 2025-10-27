@@ -1,13 +1,22 @@
-# Use an official OpenJDK image
-FROM openjdk:17
+# Use a lightweight official OpenJDK base image
+FROM openjdk:17-slim AS build
 
-# Copy all files into the image
-COPY . /app
+# Set working directory
 WORKDIR /app
 
-# Compile Java code
+# Copy only source files first (better for caching)
+COPY *.java ./
+
+# Compile Java files
 RUN javac Main.java
 
-# Run the app
+# Use a smaller runtime image for better performance
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Copy compiled class files from build stage
+COPY --from=build /app/*.class ./
+
+# Default command to run the application
 CMD ["java", "Main"]
-    
